@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -29,8 +30,8 @@ class ImageLoader {
       onComplete();
     }
 
-    final fileStream = DefaultCacheManager().getFileStream(this.url,
-        headers: this.requestHeaders as Map<String, String>?);
+    final fileStream = DefaultCacheManager()
+        .getFileStream(this.url, headers: this.requestHeaders as Map<String, String>?);
 
     fileStream.listen(
       (fileResponse) {
@@ -46,8 +47,7 @@ class ImageLoader {
 
         this.state = LoadState.success;
 
-        PaintingBinding.instance!.instantiateImageCodec(imageBytes).then(
-            (codec) {
+        PaintingBinding.instance!.instantiateImageCodec(imageBytes).then((codec) {
           this.frames = codec;
           onComplete();
         }, onError: (error) {
@@ -73,8 +73,11 @@ class StoryImage extends StatefulWidget {
 
   final StoryController? controller;
 
+  final String url;
+
   StoryImage(
-    this.imageLoader, {
+    this.imageLoader,
+    this.url, {
     Key? key,
     this.controller,
     this.fit,
@@ -89,13 +92,12 @@ class StoryImage extends StatefulWidget {
     Key? key,
   }) {
     return StoryImage(
-        ImageLoader(
-          url,
-          requestHeaders: requestHeaders,
-        ),
-        controller: controller,
-        fit: fit,
-        key: key);
+      ImageLoader(url, requestHeaders: requestHeaders),
+      url,
+      controller: controller,
+      fit: fit,
+      key: key,
+    );
   }
 
   @override
@@ -163,8 +165,7 @@ class StoryImageState extends State<StoryImage> {
     this._timer?.cancel();
 
     if (widget.controller != null &&
-        widget.controller!.playbackNotifier.stream.value ==
-            PlaybackState.pause) {
+        widget.controller!.playbackNotifier.stream.value == PlaybackState.pause) {
       return;
     }
 
@@ -180,31 +181,38 @@ class StoryImageState extends State<StoryImage> {
   }
 
   Widget getContentView() {
+    final loader = Center(
+      child: Container(
+        width: 70,
+        height: 70,
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          strokeWidth: 3,
+        ),
+      ),
+    );
+    if (kIsWeb) {
+      return Image.network(
+        widget.url,
+        fit: widget.fit,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress != null) {
+            return loader;
+          } else {
+            return child;
+          }
+        },
+      );
+    }
     switch (widget.imageLoader.state) {
       case LoadState.success:
-        return RawImage(
-          image: this.currentFrame,
-          fit: widget.fit,
-        );
+        return RawImage(image: currentFrame, fit: widget.fit);
       case LoadState.failure:
         return Center(
-            child: Text(
-          "Image failed to load.",
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ));
-      default:
-        return Center(
-          child: Container(
-            width: 70,
-            height: 70,
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
-            ),
-          ),
+          child: Text("Image failed to load.", style: TextStyle(color: Colors.white)),
         );
+      default:
+        return loader;
     }
   }
 
