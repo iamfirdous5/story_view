@@ -25,7 +25,7 @@ class ImageLoader {
   /// Load image from disk cache first, if not found then load from network.
   /// `onComplete` is called when [imageBytes] become available.
   void loadImage(VoidCallback onComplete) {
-    if (this.frames != null) {
+    if (this.frames != null || kIsWeb) {
       this.state = LoadState.success;
       onComplete();
     }
@@ -135,6 +135,7 @@ class StoryImageState extends State<StoryImage> {
 
     widget.imageLoader.loadImage(() async {
       if (mounted) {
+        if (kIsWeb) {}
         if (widget.imageLoader.state == LoadState.success) {
           widget.controller?.play();
           forward();
