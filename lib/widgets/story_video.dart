@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:video_player/video_player.dart';
@@ -43,16 +44,16 @@ class VideoLoader {
 class StoryVideo extends StatefulWidget {
   final StoryController? storyController;
   final VideoLoader videoLoader;
+  final String videoUrl;
 
-  StoryVideo(this.videoLoader, {this.storyController, Key? key})
+  StoryVideo(this.videoLoader, this.videoUrl, {this.storyController, Key? key})
       : super(key: key ?? UniqueKey());
 
   static StoryVideo url(String url,
-      {StoryController? controller,
-      Map<String, dynamic>? requestHeaders,
-      Key? key}) {
+      {StoryController? controller, Map<String, dynamic>? requestHeaders, Key? key}) {
     return StoryVideo(
       VideoLoader(url, requestHeaders: requestHeaders),
+      url,
       storyController: controller,
       key: key,
     );
@@ -79,8 +80,11 @@ class StoryVideoState extends State<StoryVideo> {
 
     widget.videoLoader.loadVideo(() {
       if (widget.videoLoader.state == LoadState.success) {
-        this.playerController =
-            VideoPlayerController.file(widget.videoLoader.videoFile!);
+        if (kIsWeb) {
+          playerController = VideoPlayerController.network(widget.videoUrl);
+        } else {
+          playerController = VideoPlayerController.file(widget.videoLoader.videoFile!);
+        }
 
         playerController!.initialize().then((v) {
           setState(() {});

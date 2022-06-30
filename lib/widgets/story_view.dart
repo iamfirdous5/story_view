@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../controller/story_controller.dart';
 import '../utils.dart';
@@ -404,6 +405,13 @@ class StoryView extends StatefulWidget {
 
   // Controls the playback of the stories
   final StoryController controller;
+
+  static const _channel = const MethodChannel('story_view');
+
+  static Future<String> get platformVersion async {
+    final String version = await _channel.invokeMethod('getPlatformVersion');
+    return version;
+  }
 
   StoryView({
     required this.storyItems,
