@@ -197,9 +197,11 @@ class StoryImageState extends State<StoryImage> {
         widget.url,
         fit: widget.fit,
         loadingBuilder: (context, child, loadingProgress) {
+          widget.controller?.pause();
           if (loadingProgress != null) {
             return loader;
           } else {
+            widget.controller?.play();
             return child;
           }
         },
