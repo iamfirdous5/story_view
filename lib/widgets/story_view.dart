@@ -36,10 +36,13 @@ class StoryItem {
 
   /// The page content
   final Widget view;
+  final Widget? bottomView;
+
   StoryItem(
     this.view, {
     required this.duration,
     this.shown = false,
+    this.bottomView,
   });
 
   /// Short hand to create text-only page.
@@ -59,6 +62,7 @@ class StoryItem {
     bool roundedTop = false,
     bool roundedBottom = false,
     Duration? duration,
+    Widget? bottomView,
   }) {
     double contrast = ContrastHelper.contrast([
       backgroundColor.red,
@@ -99,6 +103,7 @@ class StoryItem {
         ),
         //color: backgroundColor,
       ),
+      bottomView: bottomView,
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
     );
@@ -145,27 +150,17 @@ class StoryItem {
                   child: caption != null
                       ? Text(
                           caption,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(fontSize: 15, color: Colors.white),
                           textAlign: TextAlign.center,
                         )
                       : SizedBox(),
                 ),
               ),
             ),
-            if (bottomView != null) ...[
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: AbsorbPointer(child: bottomView),
-                ),
-              ),
-            ],
           ],
         ),
       ),
+      bottomView: bottomView,
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
     );
@@ -184,6 +179,7 @@ class StoryItem {
     bool roundedTop = true,
     bool roundedBottom = false,
     Duration? duration,
+    Widget? bottomView,
   }) {
     return StoryItem(
       ClipRRect(
@@ -220,6 +216,7 @@ class StoryItem {
           bottom: Radius.circular(roundedBottom ? 8 : 0),
         ),
       ),
+      bottomView: bottomView,
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
     );
@@ -239,47 +236,41 @@ class StoryItem {
     Widget? bottomView,
   }) {
     return StoryItem(
-        Container(
-          key: key,
-          color: Colors.black,
-          child: Stack(
-            children: <Widget>[
-              StoryVideo.url(
-                url,
-                controller: controller,
-                requestHeaders: requestHeaders,
-              ),
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(bottom: 24),
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    color: caption != null ? Colors.black54 : Colors.transparent,
-                    child: caption != null
-                        ? Text(
-                            caption,
-                            style: TextStyle(fontSize: 15, color: Colors.white),
-                            textAlign: TextAlign.center,
-                          )
-                        : SizedBox(),
-                  ),
+      Container(
+        key: key,
+        color: Colors.black,
+        child: Stack(
+          children: <Widget>[
+            StoryVideo.url(
+              url,
+              controller: controller,
+              requestHeaders: requestHeaders,
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.only(bottom: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  color: caption != null ? Colors.black54 : Colors.transparent,
+                  child: caption != null
+                      ? Text(
+                          caption,
+                          style: TextStyle(fontSize: 15, color: Colors.white),
+                          textAlign: TextAlign.center,
+                        )
+                      : SizedBox(),
                 ),
               ),
-              if (bottomView != null) ...[
-                SafeArea(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: AbsorbPointer(child: bottomView),
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
-        shown: shown,
-        duration: duration ?? Duration(seconds: 10));
+      ),
+      bottomView: bottomView,
+      shown: shown,
+      duration: duration ?? Duration(seconds: 10),
+    );
   }
 
   /// Shorthand for creating a story item from an image provider such as `AssetImage`
@@ -292,52 +283,55 @@ class StoryItem {
     String? caption,
     bool shown = false,
     Duration? duration,
+    Widget? bottomView,
   }) {
     return StoryItem(
-        Container(
-          key: key,
-          color: Colors.black,
-          child: Stack(
-            children: <Widget>[
-              Center(
-                child: Image(
-                  image: image,
-                  height: double.infinity,
+      Container(
+        key: key,
+        color: Colors.black,
+        child: Stack(
+          children: <Widget>[
+            Center(
+              child: Image(
+                image: image,
+                height: double.infinity,
+                width: double.infinity,
+                fit: imageFit,
+              ),
+            ),
+            SafeArea(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
                   width: double.infinity,
-                  fit: imageFit,
+                  margin: EdgeInsets.only(
+                    bottom: 24,
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  color: caption != null ? Colors.black54 : Colors.transparent,
+                  child: caption != null
+                      ? Text(
+                          caption,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      : SizedBox(),
                 ),
               ),
-              SafeArea(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(
-                      bottom: 24,
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 8,
-                    ),
-                    color: caption != null ? Colors.black54 : Colors.transparent,
-                    child: caption != null
-                        ? Text(
-                            caption,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          )
-                        : SizedBox(),
-                  ),
-                ),
-              )
-            ],
-          ),
+            )
+          ],
         ),
-        shown: shown,
-        duration: duration ?? Duration(seconds: 3));
+      ),
+      bottomView: bottomView,
+      shown: shown,
+      duration: duration ?? Duration(seconds: 3),
+    );
   }
 
   /// Shorthand for creating an inline story item from an image provider such as `AssetImage`
@@ -351,6 +345,7 @@ class StoryItem {
     bool roundedTop = true,
     bool roundedBottom = false,
     Duration? duration,
+    Widget? bottomView,
   }) {
     return StoryItem(
       Container(
@@ -361,18 +356,10 @@ class StoryItem {
               top: Radius.circular(roundedTop ? 8 : 0),
               bottom: Radius.circular(roundedBottom ? 8 : 0),
             ),
-            image: DecorationImage(
-              image: image,
-              fit: BoxFit.cover,
-            )),
+            image: DecorationImage(image: image, fit: BoxFit.cover)),
         child: Container(
-          margin: EdgeInsets.only(
-            bottom: 16,
-          ),
-          padding: EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 8,
-          ),
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           child: Align(
             alignment: Alignment.bottomLeft,
             child: Container(
@@ -382,6 +369,7 @@ class StoryItem {
           ),
         ),
       ),
+      bottomView: bottomView,
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
     );
@@ -463,6 +451,12 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     var item = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
     item ??= widget.storyItems.last;
     return item?.view ?? Container();
+  }
+
+  Widget? get _currentBottomView {
+    var item = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    item ??= widget.storyItems.last;
+    return item?.bottomView;
   }
 
   @override
@@ -695,9 +689,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                         if (verticalDragInfo == null) {
                           verticalDragInfo = VerticalDragInfo();
                         }
-
                         verticalDragInfo!.update(details.primaryDelta!);
-
                         // TODO: provide callback interface for animation purposes
                       },
                 onVerticalDragEnd: widget.onVerticalSwipeComplete == null
@@ -717,11 +709,15 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
             alignment: Alignment.centerLeft,
             heightFactor: 1,
             child: SizedBox(
-                child: GestureDetector(onTap: () {
-                  widget.controller.previous();
-                }),
-                width: 70),
+              width: 70,
+              child: GestureDetector(onTap: () => widget.controller.previous()),
+            ),
           ),
+          if (_currentBottomView != null) ...[
+            SafeArea(
+              child: Align(alignment: Alignment.bottomCenter, child: _currentBottomView),
+            ),
+          ],
         ],
       ),
     );
