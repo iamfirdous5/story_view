@@ -156,7 +156,12 @@ class StoryItem {
               ),
             ),
             if (bottomView != null) ...[
-              SafeArea(child: Align(alignment: Alignment.bottomCenter, child: bottomView)),
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: AbsorbPointer(child: bottomView),
+                ),
+              ),
             ],
           ],
         ),
@@ -264,7 +269,10 @@ class StoryItem {
               ),
               if (bottomView != null) ...[
                 SafeArea(
-                  child: Align(alignment: Alignment.bottomCenter, child: bottomView),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: AbsorbPointer(child: bottomView),
+                  ),
                 ),
               ],
             ],
