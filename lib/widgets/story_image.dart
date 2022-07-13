@@ -20,12 +20,36 @@ class ImageLoader {
 
   LoadState state = LoadState.loading; // by default
 
-  ImageLoader(this.url, {this.requestHeaders});
+  Image? networkImage;
+
+  BoxFit? fit;
+
+  ImageLoader(this.url, {this.requestHeaders, required this.fit});
 
   /// Load image from disk cache first, if not found then load from network.
   /// `onComplete` is called when [imageBytes] become available.
   void loadImage(VoidCallback onComplete) {
-    if (this.frames != null || kIsWeb) {
+    if (kIsWeb) {
+      networkImage = Image.network(url, fit: fit);
+      final onResult = (LoadState state) {
+        if (this.state != LoadState.loading) {
+          onComplete();
+          return;
+        }
+        this.state = state;
+        onComplete();
+      };
+      networkImage?.image.resolve(ImageConfiguration()).addListener(
+            ImageStreamListener(
+              (_, __) => onResult(LoadState.success),
+              onError: (_, __) => onResult(LoadState.failure),
+            ),
+          );
+
+      return;
+    }
+
+    if (this.frames != null) {
       this.state = LoadState.success;
       onComplete();
     }
@@ -92,7 +116,7 @@ class StoryImage extends StatefulWidget {
     Key? key,
   }) {
     return StoryImage(
-      ImageLoader(url, requestHeaders: requestHeaders),
+      ImageLoader(url, requestHeaders: requestHeaders, fit: fit),
       url,
       controller: controller,
       fit: fit,
@@ -114,7 +138,6 @@ class StoryImageState extends State<StoryImage> {
   @override
   void initState() {
     super.initState();
-
     if (widget.controller != null) {
       this._streamSubscription =
           widget.controller!.playbackNotifier.listen((playbackState) {
@@ -135,7 +158,6 @@ class StoryImageState extends State<StoryImage> {
 
     widget.imageLoader.loadImage(() async {
       if (mounted) {
-        if (kIsWeb) {}
         if (widget.imageLoader.state == LoadState.success) {
           widget.controller?.play();
           forward();
@@ -163,6 +185,10 @@ class StoryImageState extends State<StoryImage> {
   }
 
   void forward() async {
+    if (kIsWeb) {
+      setState(() {});
+      return;
+    }
     this._timer?.cancel();
 
     if (widget.controller != null &&
@@ -182,40 +208,27 @@ class StoryImageState extends State<StoryImage> {
   }
 
   Widget getContentView() {
-    final loader = Center(
-      child: Container(
-        width: 70,
-        height: 70,
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-          strokeWidth: 3,
-        ),
-      ),
+    final fail = Center(
+      child: Text('Image failed to load.', style: TextStyle(color: Colors.white)),
     );
-    if (kIsWeb) {
-      return Image.network(
-        widget.url,
-        fit: widget.fit,
-        loadingBuilder: (context, child, loadingProgress) {
-          widget.controller?.pause();
-          if (loadingProgress != null) {
-            return loader;
-          } else {
-            widget.controller?.play();
-            return child;
-          }
-        },
-      );
-    }
     switch (widget.imageLoader.state) {
       case LoadState.success:
-        return RawImage(image: currentFrame, fit: widget.fit);
+        return kIsWeb
+            ? widget.imageLoader.networkImage ?? fail
+            : RawImage(image: currentFrame, fit: widget.fit);
       case LoadState.failure:
-        return Center(
-          child: Text("Image failed to load.", style: TextStyle(color: Colors.white)),
-        );
+        return fail;
       default:
-        return loader;
+        return Center(
+          child: Container(
+            width: 70,
+            height: 70,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              strokeWidth: 3,
+            ),
+          ),
+        );
     }
   }
 
