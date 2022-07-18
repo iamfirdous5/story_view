@@ -467,7 +467,9 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    _preLoadImage(widget.storyItems.firstWhereOrNull((item) => item.imageUrl != null));
+    _preLoadImage(
+      widget.storyItems.sublist(1).firstWhereOrNull((item) => item.imageUrl != null),
+    );
 
     // All pages after the first unshown page should have their shown value as
     // false
@@ -540,9 +542,11 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     final index = widget.storyItems.indexWhere((it) => !it.shown);
     final storyItem = widget.storyItems[index];
 
-    _preLoadImage(widget.storyItems
-        .sublist(index + 2)
-        .firstWhereOrNull((item) => item.imageUrl != null));
+    if (index + 2 < widget.storyItems.length) {
+      _preLoadImage(widget.storyItems
+          .sublist(index + 2)
+          .firstWhereOrNull((item) => item.imageUrl != null));
+    }
 
     if (widget.onStoryShow != null) {
       widget.onStoryShow!(storyItem);
