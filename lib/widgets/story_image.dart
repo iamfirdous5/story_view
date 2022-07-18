@@ -24,7 +24,7 @@ class ImageLoader {
 
   BoxFit? fit;
 
-  ImageLoader(this.url, {this.requestHeaders, required this.fit});
+  ImageLoader(this.url, {this.requestHeaders, this.fit});
 
   /// Load image from disk cache first, if not found then load from network.
   /// `onComplete` is called when [imageBytes] become available.

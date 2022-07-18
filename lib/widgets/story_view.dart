@@ -38,11 +38,14 @@ class StoryItem {
   final Widget view;
   final Widget? bottomView;
 
+  final String? imageUrl;
+
   StoryItem(
     this.view, {
     required this.duration,
     this.shown = false,
     this.bottomView,
+    this.imageUrl,
   });
 
   /// Short hand to create text-only page.
@@ -163,6 +166,7 @@ class StoryItem {
       bottomView: bottomView,
       shown: shown,
       duration: duration ?? Duration(seconds: 3),
+      imageUrl: url,
     );
   }
 
@@ -465,6 +469,12 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
 
     // All pages after the first unshown page should have their shown value as
     // false
+
+    widget.storyItems.where((item) => item?.imageUrl != null).forEach((item) {
+      if (item?.imageUrl != null) {
+        ImageLoader(item!.imageUrl!).loadImage(() {});
+      }
+    });
     final firstPage = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
     if (firstPage == null) {
       widget.storyItems.forEach((it2) {
