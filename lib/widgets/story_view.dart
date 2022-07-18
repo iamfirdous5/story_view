@@ -385,7 +385,7 @@ class StoryItem {
 /// gestures to pause, forward and go to previous page.
 class StoryView extends StatefulWidget {
   /// The pages to displayed.
-  final List<StoryItem?> storyItems;
+  final List<StoryItem> storyItems;
 
   /// Callback for when a full cycle of story is shown. This will be called
   /// each time the full story completes when [repeat] is set to `true`.
@@ -448,42 +448,38 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
   VerticalDragInfo? verticalDragInfo;
 
   StoryItem? get _currentStory {
-    return widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    return widget.storyItems.firstWhereOrNull((it) => !it.shown);
   }
 
   Widget get _currentView {
-    var item = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    var item = widget.storyItems.firstWhereOrNull((it) => !it.shown);
     item ??= widget.storyItems.last;
-    return item?.view ?? Container();
+    return item.view;
   }
 
   Widget? get _currentBottomView {
-    var item = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    var item = widget.storyItems.firstWhereOrNull((it) => !it.shown);
     item ??= widget.storyItems.last;
-    return item?.bottomView;
+    return item.bottomView;
   }
 
   @override
   void initState() {
     super.initState();
 
+    _preLoadImage(widget.storyItems.firstWhereOrNull((item) => item.imageUrl != null));
+
     // All pages after the first unshown page should have their shown value as
     // false
-
-    widget.storyItems.where((item) => item?.imageUrl != null).forEach((item) {
-      if (item?.imageUrl != null) {
-        ImageLoader(item!.imageUrl!).loadImage(() {});
-      }
-    });
-    final firstPage = widget.storyItems.firstWhereOrNull((it) => !it!.shown);
+    final firstPage = widget.storyItems.firstWhereOrNull((it) => !it.shown);
     if (firstPage == null) {
       widget.storyItems.forEach((it2) {
-        it2!.shown = false;
+        it2.shown = false;
       });
     } else {
       final lastShownPos = widget.storyItems.indexOf(firstPage);
       widget.storyItems.sublist(lastShownPos).forEach((it) {
-        it!.shown = false;
+        it.shown = false;
       });
     }
 
@@ -532,12 +528,21 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     }
   }
 
+  void _preLoadImage(StoryItem? item) {
+    if (item?.imageUrl != null) {
+      ImageLoader(item!.imageUrl!).loadImage(() {});
+    }
+  }
+
   void _play() {
     _animationController?.dispose();
     // get the next playing page
-    final storyItem = widget.storyItems.firstWhere((it) {
-      return !it!.shown;
-    })!;
+    final index = widget.storyItems.indexWhere((it) => !it.shown);
+    final storyItem = widget.storyItems[index];
+
+    _preLoadImage(widget.storyItems
+        .sublist(index + 2)
+        .firstWhereOrNull((item) => item.imageUrl != null));
 
     if (widget.onStoryShow != null) {
       widget.onStoryShow!(storyItem);
@@ -574,9 +579,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     }
 
     if (widget.repeat) {
-      widget.storyItems.forEach((it) {
-        it!.shown = false;
-      });
+      widget.storyItems.forEach((it) => it.shown = false);
 
       _beginPlay();
     }
@@ -586,15 +589,15 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
     _animationController!.stop();
 
     if (this._currentStory == null) {
-      widget.storyItems.last!.shown = false;
+      widget.storyItems.last.shown = false;
     }
 
     if (this._currentStory == widget.storyItems.first) {
       _beginPlay();
     } else {
       this._currentStory!.shown = false;
-      int lastPos = widget.storyItems.indexOf(this._currentStory);
-      final previous = widget.storyItems[lastPos - 1]!;
+      int lastPos = widget.storyItems.indexOf(this._currentStory!);
+      final previous = widget.storyItems[lastPos - 1];
 
       previous.shown = false;
 
@@ -656,7 +659,7 @@ class StoryViewState extends State<StoryView> with TickerProviderStateMixin {
                   vertical: 8,
                 ),
                 child: PageBar(
-                  widget.storyItems.map((it) => PageData(it!.duration, it.shown)).toList(),
+                  widget.storyItems.map((it) => PageData(it.duration, it.shown)).toList(),
                   this._currentAnimation,
                   key: UniqueKey(),
                   indicatorHeight:
